@@ -1,0 +1,10 @@
+{
+  "name": "skenario2-level2-nodejs",
+  "version": "1.0.0",
+  "description": "Aplikasi Node.js untuk praktik CI/CD Skenario 2 Level 2 (pm2, self-hosted runner)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "MIT"
+}

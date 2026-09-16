@@ -1,0 +1,10 @@
+{
+  "name": "skenario1-level2-nodejs",
+  "version": "1.0.0",
+  "description": "Aplikasi Node.js sederhana untuk praktik CI/CD Skenario 1 Level 2",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "MIT"
+}

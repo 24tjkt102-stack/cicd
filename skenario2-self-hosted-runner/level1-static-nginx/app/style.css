@@ -1,0 +1,4 @@
+body{font-family:system-ui,sans-serif;background:#1a1030;color:#f1e9ff;display:flex;height:100vh;align-items:center;justify-content:center;margin:0}
+.card{background:#2c1b4d;padding:2.5rem;border-radius:12px;max-width:480px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+h1{color:#c084fc;margin-top:0}
+.badge{display:inline-block;margin-top:1rem;padding:.3rem .8rem;background:#a855f7;border-radius:999px;font-size:.8rem}
