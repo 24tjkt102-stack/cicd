@@ -1,0 +1,68 @@
+name: "Skenario 1 - Level 3 - Deploy Flask (release + cron)"
+
+# Trigger: tag rilis v* ATAU jadwal cron harian
+on:
+  push:
+    tags:
+      - 'v*'
+  schedule:
+    - cron: '0 2 * * *'   # setiap hari jam 02:00 UTC
+
+jobs:
+  deploy:
+    name: Deploy Flask app ke VM-A
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Tentukan versi rilis
+        id: ver
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=scheduled-refresh" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install cloudflared & sshpass
+        run: |
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+          sudo dpkg -i cloudflared.deb
+          sudo apt-get update -y && sudo apt-get install -y sshpass
+
+      - name: Siapkan SSH config (ProxyCommand Cloudflare Access, tanpa SSH key)
+        env:
+          CF_ACCESS_HOSTNAME: ${{ secrets.CF_ACCESS_HOSTNAME }}
+        run: |
+          mkdir -p ~/.ssh
+          cat >> ~/.ssh/config <<EOC
+          Host vm-a
+            HostName ${CF_ACCESS_HOSTNAME}
+            User ${{ secrets.VPS_USERNAME }}
+            ProxyCommand cloudflared access ssh --hostname %h
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null
+          EOC
+
+      - name: Upload kode Flask ke VM-A
+        env:
+          SSHPASS: ${{ secrets.VPS_PASSWORD }}
+        run: |
+          ssh vm-a "sudo mkdir -p /opt/level3-flask && sudo chown \$USER:\$USER /opt/level3-flask"
+          sshpass -e scp -o StrictHostKeyChecking=no \
+            skenario1-github-actions-vps-proxycommand/level3-python-flask-release/app/app.py \
+            skenario1-github-actions-vps-proxycommand/level3-python-flask-release/app/requirements.txt \
+            vm-a:/opt/level3-flask/
+
+      - name: Install dependency & set versi & restart service
+        env:
+          SSHPASS: ${{ secrets.VPS_PASSWORD }}
+          RELEASE_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          sshpass -e ssh vm-a "
+            /opt/level3-flask/venv/bin/pip install -r /opt/level3-flask/requirements.txt &&
+            sudo sed -i 's/^Environment=APP_VERSION=.*/Environment=APP_VERSION=${RELEASE_VERSION}/' /etc/systemd/system/level3-flask.service &&
+            sudo systemctl daemon-reload &&
+            sudo systemctl restart level3-flask
+          "
