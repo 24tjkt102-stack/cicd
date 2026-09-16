@@ -1,0 +1,24 @@
+name: "Skenario 2 - Level 1 - Deploy Static Site (self-hosted VM-B)"
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'skenario2-self-hosted-runner/level1-static-nginx/app/**'
+
+jobs:
+  deploy:
+    name: Deploy static site langsung di VM-B
+    runs-on: [self-hosted, vm-b]
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Salin file ke web root Nginx (lokal, tanpa SSH)
+        run: |
+          sudo mkdir -p /var/www/level1-static
+          sudo cp skenario2-self-hosted-runner/level1-static-nginx/app/index.html /var/www/level1-static/
+          sudo cp skenario2-self-hosted-runner/level1-static-nginx/app/style.css /var/www/level1-static/
+
+      - name: Reload Nginx
+        run: sudo systemctl reload nginx
