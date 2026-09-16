@@ -1,0 +1,60 @@
+name: "Skenario 1 - Level 2 - Deploy Node.js (systemd)"
+
+# Trigger: push otomatis ATAU dijalankan manual (workflow_dispatch) dengan input
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'skenario1-github-actions-vps-proxycommand/level2-nodejs-systemd/app/**'
+  workflow_dispatch:
+    inputs:
+      restart_only:
+        description: 'Hanya restart service tanpa upload ulang file?'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    name: Deploy Node.js app ke VM-A
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Install cloudflared & sshpass
+        run: |
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+          sudo dpkg -i cloudflared.deb
+          sudo apt-get update -y && sudo apt-get install -y sshpass
+
+      - name: Siapkan SSH config (ProxyCommand Cloudflare Access, tanpa SSH key)
+        env:
+          CF_ACCESS_HOSTNAME: ${{ secrets.CF_ACCESS_HOSTNAME }}
+        run: |
+          mkdir -p ~/.ssh
+          cat >> ~/.ssh/config <<EOC
+          Host vm-a
+            HostName ${CF_ACCESS_HOSTNAME}
+            User ${{ secrets.VPS_USERNAME }}
+            ProxyCommand cloudflared access ssh --hostname %h
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null
+          EOC
+
+      - name: Upload file aplikasi (skip jika restart_only = true)
+        if: ${{ github.event.inputs.restart_only != 'true' }}
+        env:
+          SSHPASS: ${{ secrets.VPS_PASSWORD }}
+        run: |
+          ssh vm-a "sudo mkdir -p /opt/level2-node && sudo chown \$USER:\$USER /opt/level2-node"
+          sshpass -e scp -o StrictHostKeyChecking=no \
+            skenario1-github-actions-vps-proxycommand/level2-nodejs-systemd/app/server.js \
+            skenario1-github-actions-vps-proxycommand/level2-nodejs-systemd/app/package.json \
+            vm-a:/opt/level2-node/
+
+      - name: Restart systemd service level2-node
+        env:
+          SSHPASS: ${{ secrets.VPS_PASSWORD }}
+        run: |
+          sshpass -e ssh vm-a "sudo systemctl restart level2-node && sudo systemctl status level2-node --no-pager"
