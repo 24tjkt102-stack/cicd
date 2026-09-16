@@ -1,0 +1,41 @@
+name: "Skenario 2 - Level 3 - Deploy Flask multi-branch (self-hosted VM-B)"
+
+on:
+  push:
+    branches: [ main, staging ]
+    paths:
+      - 'skenario2-self-hosted-runner/level3-python-flask-multibranch/app/**'
+  schedule:
+    - cron: '0 3 * * 1'   # setiap Senin jam 03:00 UTC
+
+jobs:
+  deploy:
+    name: Deploy Flask app langsung di VM-B
+    runs-on: [self-hosted, vm-b]
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Tentukan target folder sesuai branch
+        id: target
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "staging" ]]; then
+            echo "dir=/opt/level3-flask-vmb/staging" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=/opt/level3-flask-vmb/main" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Salin kode Flask (lokal, tanpa SSH)
+        run: |
+          mkdir -p "${{ steps.target.outputs.dir }}"
+          cp skenario2-self-hosted-runner/level3-python-flask-multibranch/app/app.py "${{ steps.target.outputs.dir }}/"
+          cp skenario2-self-hosted-runner/level3-python-flask-multibranch/app/requirements.txt "${{ steps.target.outputs.dir }}/"
+
+      - name: Install dependency & restart service
+        env:
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+        run: |
+          /opt/level3-flask-vmb/venv/bin/pip install -r "${{ steps.target.outputs.dir }}/requirements.txt"
+          sudo sed -i "s#^WorkingDirectory=.*#WorkingDirectory=${{ steps.target.outputs.dir }}#" /etc/systemd/system/level3-flask-vmb.service
+          sudo systemctl daemon-reload
+          sudo systemctl restart level3-flask-vmb
