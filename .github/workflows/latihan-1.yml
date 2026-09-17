@@ -1,4 +1,4 @@
-name: Run Tests
+name: Latihan 1
 on: workflow_dispatch
 jobs:
   test:
