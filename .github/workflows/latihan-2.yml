@@ -16,7 +16,13 @@ jobs:
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
           sudo dpkg -i cloudflared.deb
           cloudflared --version
-      - name: Instal sebagai Systemd Service
-        run: sudo cloudflared service install tunnel --url http://localhost:80
-      - name: Cara Melihat Domain trycloudflare.com yang Dihasilkan
-        run: sudo journalctl -u cloudflared.service | grep trycloudflare.com
+      - name: Jalankan Cloudflare Quick Tunnel di Background
+        run: |
+          # Jalankan tunnel di background dan arahkan output ke file log
+          sudo cloudflared tunnel --url http://localhost:80 > cloudflared.log 2>&1 &
+          
+          # Tunggu beberapa detik agar tunnel selesai membuat koneksi
+          sleep 5
+          
+          # Tampilkan domain trycloudflare.com yang dihasilkan ke log GitHub Actions
+          cat cloudflared.log | grep -o 'https://.*\.trycloudflare\.com'
