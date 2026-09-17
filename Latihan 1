@@ -5,7 +5,9 @@ name: Latihan 1
    runs-on: ubuntu-latest 
     steps: 
      - uses: actions/checkout@v3 
-     - name: Install dependencies 
-    run: npm install 
-     - name: Run tests 
-    run: npm test
+     - name: install update
+       run: sudo apt update -y
+     - name: install nginx
+       run: sudo apt install nginx -y 
+     - name: tes landing page 
+       run: curl localhost
