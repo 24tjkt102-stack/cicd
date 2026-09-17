@@ -1,0 +1,26 @@
+name: Latihan 10
+# Belajar: karena runner sudah ada DI DALAM VM, menulis file di /home/ubuntu
+# tidak perlu SSH/ProxyCommand/secrets sama sekali — beda dengan Latihan 5
+# yang menulis ke VM dari luar. Trigger digabung: jadwal otomatis + manual.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'   # setiap hari jam 01:00 UTC
+
+jobs:
+  status-check:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Tulis file status langsung di /home/ubuntu (tanpa SSH)
+        run: |
+          {
+            echo "Latihan 10 - laporan status VM"
+            echo "Waktu   : $(date)"
+            echo "Uptime  : $(uptime -p)"
+            echo "Disk    : $(df -h / | tail -1)"
+          } > /home/ubuntu/latihan-10-status.txt
+
+      - name: Tampilkan isi file sebagai bukti
+        run: cat /home/ubuntu/latihan-10-status.txt

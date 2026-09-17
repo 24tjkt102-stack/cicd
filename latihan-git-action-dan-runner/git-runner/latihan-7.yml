@@ -1,0 +1,28 @@
+name: Latihan 7
+# Belajar: bedanya Quick Tunnel (Latihan 2, sementara & acak) dengan Tunnel
+# Zero Trust permanen yang sudah dipasang di VM ini. Trigger memakai push,
+# supaya kalian latihan trigger otomatis, bukan cuma manual.
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'git-runner/latihan-7.yml'
+
+jobs:
+  test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install & jalankan nginx (jika belum ada)
+        run: |
+          sudo apt update -y
+          sudo apt install nginx -y
+          sudo systemctl start nginx
+
+      - name: Tes lewat domain Tunnel Zero Trust yang sudah aktif di VM ini
+        env:
+          CF_HOSTNAME: ${{ secrets.CF_HOSTNAME }}
+        run: |
+          echo "Domain publik VM (dari Zero Trust): ${CF_HOSTNAME}"
+          curl -sSf "https://${CF_HOSTNAME}" || echo "Jika gagal, cek Public Hostname di dashboard Zero Trust sudah mengarah ke http://localhost:80"

@@ -1,0 +1,13 @@
+name: Latihan 1
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install update
+        run: sudo apt update -y
+      - name: Install apache
+        run: sudo apt install apache2 -y
+      - name: Tes landing page apache
+        run: sudo systemctl start apache2 && curl localhost
