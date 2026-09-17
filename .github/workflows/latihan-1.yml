@@ -10,4 +10,4 @@ jobs:
       - name: Install nginx
         run: sudo apt install nginx -y
       - name: Tes landing page nginx
-        run: curl localhost
+        run: sudo systemctl start nginx && curl localhost
