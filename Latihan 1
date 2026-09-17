@@ -9,5 +9,5 @@ name: Latihan 1
        run: sudo apt update -y
      - name: install nginx
        run: sudo apt install nginx -y 
-     - name: tes landing page 
+     - name: test landing page 
        run: curl localhost
