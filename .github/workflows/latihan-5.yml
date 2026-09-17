@@ -1,0 +1,43 @@
+name: Latihan 5
+# Belajar: remote ke VM asli lewat SSH tanpa SSH key. VM sudah dipasang
+# Cloudflare Tunnel Zero Trust, jadi koneksi SSH dibungkus lewat
+# `cloudflared access ssh` sebagai ProxyCommand, login pakai username+password.
+on: workflow_dispatch
+jobs:
+  remote-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install cloudflared & sshpass
+        run: |
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+          sudo dpkg -i cloudflared.deb
+          sudo apt update -y
+          sudo apt install -y sshpass
+
+      - name: Siapkan SSH config (ProxyCommand cloudflared access, tanpa SSH key)
+        env:
+          URL_VM: ${{ secrets.URL_VM }}
+        run: |
+          mkdir -p ~/.ssh
+          cat >> ~/.ssh/config <<EOC
+          Host vm-latihan
+            HostName ${URL_VM}
+            User ${{ secrets.USER_VPS }}
+            ProxyCommand cloudflared access ssh --hostname %h
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null
+          EOC
+
+      - name: Tulis 1 file baru di /home/ubuntu milik VM
+        env:
+          SSHPASS: ${{ secrets.PASS_VPS }}
+        run: |
+          sshpass -e ssh vm-latihan "echo 'Latihan 5 - ditulis oleh GitHub Actions pada $(date)' > /home/ubuntu/latihan-5-$(date +%s).txt"
+
+      - name: Buktikan file benar-benar ada di VM
+        env:
+          SSHPASS: ${{ secrets.PASS_VPS }}
+        run: |
+          sshpass -e ssh vm-latihan "ls -la /home/ubuntu/ | grep latihan-5"
