@@ -16,16 +16,5 @@ jobs:
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
           sudo dpkg -i cloudflared.deb
           cloudflared --version
-      - name: Jalankan Cloudflare Quick Tunnel di Background
-        run: |
-          # Jalankan tunnel di background dan arahkan output ke file log
-          sudo cloudflared tunnel --url http://localhost:80 > cloudflared.log 2>&1 &
-          
-          # Tunggu beberapa detik agar tunnel selesai membuat koneksi
-          sleep 5
-          
-          # Tampilkan domain trycloudflare.com yang dihasilkan ke log GitHub Actions
-          cat cloudflared.log | grep -o 'https://.*\.trycloudflare\.com'
-          
-          # Waktu aktif link sebelum expired
-          sleep 360
+      - name: Jalankan Cloudflare Quick Tunnel 
+        run: sudo cloudflared tunnel --url http://localhost:80 
