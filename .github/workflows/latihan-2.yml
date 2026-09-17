@@ -26,3 +26,6 @@ jobs:
           
           # Tampilkan domain trycloudflare.com yang dihasilkan ke log GitHub Actions
           cat cloudflared.log | grep -o 'https://.*\.trycloudflare\.com'
+          
+          # Waktu aktif link sebelum expired
+          sleep 360
