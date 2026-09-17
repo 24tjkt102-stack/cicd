@@ -1,0 +1,20 @@
+name: Latihan 1
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install update
+        run: sudo apt update -y
+      - name: Install nginx
+        run: sudo apt install nginx -y
+      - name: Tes landing page nginx
+        run: sudo systemctl start nginx
+      - name: Install CLoudflare
+        run: |
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+          sudo dpkg -i cloudflared.deb
+          cloudflared --version
+      - name: Merubah ke public sementara dengan trycloudflare
+        run: sudo cloudflared tunnel --url http://localhost:80
