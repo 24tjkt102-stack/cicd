@@ -15,7 +15,7 @@ jobs:
         run: sudo apt install apache2 -y
 
       - name: Ganti landing page default dengan file dari assets/latihan-3
-        run: sudo cp assets/latihan-3/index.html /var/www/html/index.html
+        run: sudo cp latihan-git-action-dan-runner/assets/latihan-3/index.html /var/www/html/index.html
 
       - name: Tes landing page hasil ganti
         run: sudo systemctl start apache2 && curl localhost
@@ -24,4 +24,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: hasil-latihan-3
-          path: assets/latihan-3/index.html
+          path: latihan-git-action-dan-runner/assets/latihan-3/index.html
