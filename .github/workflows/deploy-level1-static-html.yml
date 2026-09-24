@@ -6,7 +6,7 @@ on:
     branches: [ main ]
     paths:
       - 'skenario1-github-actions-vps-proxycommand/level1-static-html/app/**'
-
+  worlflow_dispatch:
 jobs:
   deploy:
     name: Deploy static site ke VM-A
